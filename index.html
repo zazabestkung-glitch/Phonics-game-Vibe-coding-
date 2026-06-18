@@ -348,7 +348,6 @@
         let isCorrectState = false; 
         const synth = window.speechSynthesis;
 
-        // Triggers transition from start screen layout to interactive play board
         function startGame() {
             const startScreen = document.getElementById('start-screen');
             const gameInterface = document.getElementById('game-interface');
@@ -358,7 +357,7 @@
                 startScreen.style.display = 'none';
                 gameInterface.style.opacity = '1';
                 gameInterface.style.pointerEvents = 'auto';
-                nextRound(); // Seed the first alphabet round setup
+                nextRound(); 
             }, 500);
         }
 
