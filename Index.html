@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phonics Pop! with Start Screen</title>
+    <style>
+        :root {
+            --bg-color: #e0f2fe;
+            --primary-color: #38bdf8;
+            --success-color: #4ade80;
+            --danger-color: #f87171;
+            --text-color: #1e293b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial', sans-serif;
+            background: linear-gradient(180deg, #bae6fd 0%, #e0f2fe 100%);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            overflow: hidden;
+            padding: 15px;
+        }
+
+        /* Start Screen Overlay Layout */
+        #start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(180deg, #bae6fd 0%, #e0f2fe 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            z-index: 100;
+            transition: opacity 0.5s ease;
+        }
+
+        .game-title {
+            font-size: 56px;
+            font-weight: bold;
+            color: #0284c7;
+            text-shadow: 4px 4px 0px white;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .start-btn {
+            background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%);
+            color: white;
+            border: 6px solid white;
+            padding: 20px 60px;
+            font-size: 40px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 15px 30px rgba(2, 132, 199, 0.4);
+            animation: bounce 1s infinite alternate;
+        }
+
+        /* Game Elements (Hidden initially) */
+        #game-interface {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            flex-grow: 1;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .top-bar {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.85);
+            padding: 10px 24px;
+            border-radius: 50px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.05);
+            z-index: 10;
+            margin-bottom: 10px;
+        }
+
+        .score-box {
+            font-size: 24px;
+            font-weight: bold;
+            color: #0369a1;
+        }
+
+        .game-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin: auto 0;
+            z-index: 10;
+        }
+
+        .word-card {
+            background: white;
+            padding: 20px 40px;
+            border-radius: 24px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.06);
+            border: 4px solid #f0fdf4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 240px;
+        }
+
+        .word-emoji {
+            font-size: 80px;
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+
+        .word-container {
+            font-size: 36px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .first-letter {
+            color: #f43f5e;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .first-letter.hidden-letter {
+            color: #94a3b8;
+            border-bottom: 4px dashed #94a3b8;
+            min-width: 25px;
+            text-align: center;
+        }
+
+        .first-letter.revealed-letter {
+            color: #22c55e;
+            transform: scale(1.2);
+        }
+
+        .rest-of-word {
+            color: #0284c7;
+            text-transform: lowercase;
+        }
+
+        .speaker-btn {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #38bdf8 0%, #0284c7 100%);
+            border: 5px solid #fff;
+            box-shadow: 0 8px 20px rgba(2, 132, 199, 0.3);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.1s;
+        }
+
+        .speaker-btn:active { transform: scale(0.92); }
+        .speaker-icon { width: 40px; height: 40px; fill: white; }
+
+        .next-btn {
+            display: none;
+            background: linear-gradient(180deg, #4ade80 0%, #22c55e 100%);
+            color: white;
+            border: 4px solid white;
+            padding: 14px 40px;
+            font-size: 28px;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(34, 197, 94, 0.4);
+            animation: bounce 1s infinite alternate;
+            margin-top: 10px;
+        }
+
+        @keyframes bounce {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-6px); }
+        }
+
+        .choices-zone {
+            width: 100%;
+            max-width: 550px;
+            display: flex;
+            justify-content: space-around;
+            gap: 15px;
+            margin-bottom: 25px;
+            z-index: 10;
+        }
+
+        .balloon {
+            width: 110px;
+            height: 140px;
+            border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 56px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            position: relative;
+            box-shadow: inset -8px -12px 20px rgba(0,0,0,0.15), 0 12px 20px rgba(0,0,0,0.1);
+            transition: opacity 0.3s ease, transform 0.2s;
+            animation: float 4s ease-in-out infinite alternate;
+        }
+
+        .balloon.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .balloon::after {
+            content: "";
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            width: 2px;
+            height: 15px;
+            background-color: rgba(0,0,0,0.2);
+        }
+
+        .balloon:nth-child(1) { animation-delay: 0s; background: #f43f5e; }
+        .balloon:nth-child(2) { animation-delay: 0.5s; background: #0ea5e9; }
+        .balloon:nth-child(3) { animation-delay: 0.2s; background: #eab308; }
+
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(-2deg); }
+            100% { transform: translateY(-12px) rotate(2deg); }
+        }
+
+        .wrong-shake { animation: shake 0.4s linear; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: drop 1.5s ease-out forwards;
+            z-index: 1;
+        }
+        @keyframes drop {
+            0% { transform: translateY(-50px) translateX(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) translateX(100px) rotate(360deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Start Screen Overlay -->
+    <div id="start-screen">
+        <h1 class="game-title">Phonics Pop!🎈</h1>
+        <button class="start-btn" onclick="startGame()">PLAY ▶️</button>
+    </div>
+
+    <!-- Main Game Interface Box -->
+    <div id="game-interface">
+        <div class="top-bar">
+            <div class="score-box">⭐ <span id="score">0</span></div>
+            <div style="font-size: 24px; font-weight: bold; color: #0369a1;">Phonics Pop!</div>
+        </div>
+
+        <div class="game-display">
+            <div class="word-card">
+                <div class="word-emoji" id="current-emoji">🎈</div>
+                <div class="word-container">
+                    <span id="letter-slot" class="first-letter hidden-letter">_</span><span id="word-tail" class="rest-of-word"></span>
+                </div>
+            </div>
+
+            <button class="speaker-btn" id="audio-btn" onclick="playTargetSound()">
+                <svg class="speaker-icon" viewBox="0 0 24 24">
+                    <path d="M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.85 14,18.71V20.77C18.03,19.86 21,16.28 21,12C21,7.72 18.03,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16C15.5,15.29 16.5,13.77 16.5,12M3,9V15H7L12,20V4L7,9H3Z" />
+                </svg>
+            </button>
+
+            <button class="next-btn" id="next-btn" onclick="nextRound()">Next ➡️</button>
+        </div>
+
+        <div class="choices-zone" id="choices-container">
+            <div class="balloon" onclick="checkAnswer(this)">A</div>
+            <div class="balloon" onclick="checkAnswer(this)">B</div>
+            <div class="balloon" onclick="checkAnswer(this)">C</div>
+        </div>
+    </div>
+
+    <script>
+        const phonicsData = [
+            { letter: 'A', phonic: 'ah', wordTail: 'pple', emoji: '🍎', exactWord: 'Apple' },
+            { letter: 'B', phonic: 'buh', wordTail: 'anana', emoji: '🍌', exactWord: 'Banana' },
+            { letter: 'C', phonic: 'kuh', wordTail: 'at', emoji: '🐱', exactWord: 'Cat' },
+            { letter: 'D', phonic: 'duh', wordTail: 'og', emoji: '🐶', exactWord: 'Dog' },
+            { letter: 'E', phonic: 'eh', wordTail: 'gg', emoji: '🥚', exactWord: 'Egg' },
+            { letter: 'F', phonic: 'fffff', wordTail: 'ish', emoji: '🐟', exactWord: 'Fish' },
+            { letter: 'G', phonic: 'guh', wordTail: 'uitar', emoji: '🎸', exactWord: 'Guitar' },
+            { letter: 'H', phonic: 'huh', wordTail: 'at', emoji: '👒', exactWord: 'Hat' },
+            { letter: 'I', phonic: 'ih', wordTail: 'gloo', emoji: '⛺', exactWord: 'Igloo' },
+            { letter: 'J', phonic: 'juh', wordTail: 'uice', emoji: '🧃', exactWord: 'Juice' },
+            { letter: 'K', phonic: 'kuh', wordTail: 'ing', emoji: '👑', exactWord: 'King' },
+            { letter: 'L', phonic: 'lllll', wordTail: 'ion', emoji: '🦁', exactWord: 'Lion' },
+            { letter: 'M', phonic: 'mmmmm', wordTail: 'onkey', emoji: '🐵', exactWord: 'Monkey' },
+            { letter: 'N', phonic: 'nnnnn', wordTail: 'est', emoji: '🪹', exactWord: 'Nest' },
+            { letter: 'O', phonic: 'oh', wordTail: 'ctopus', emoji: '🐙', exactWord: 'Octopus' },
+            { letter: 'P', phonic: 'puh', wordTail: 'ig', emoji: '🐷', exactWord: 'Pig' },
+            { letter: 'Q', phonic: 'kwuh', wordTail: 'ueen', emoji: '👸', exactWord: 'Queen' },
+            { letter: 'R', phonic: 'rrrrr', wordTail: 'ing', emoji: '💍', exactWord: 'Ring' },
+            { letter: 'S', phonic: 'sssss', wordTail: 'un', emoji: '☀️', exactWord: 'Sun' },
+            { letter: 'T', phonic: 'tuh', wordTail: 'iger', emoji: '🐯', exactWord: 'Tiger' },
+            { letter: 'U', phonic: 'uh', wordTail: 'mbrella', emoji: '☂️', exactWord: 'Umbrella' },
+            { letter: 'V', phonic: 'vvvvv', wordTail: 'an', emoji: '🚐', exactWord: 'Van' },
+            { letter: 'W', phonic: 'wuh', wordTail: 'indow', emoji: '🪟', exactWord: 'Window' },
+            { letter: 'X', phonic: 'ks', wordTail: 'ylophone', emoji: '🪘', exactWord: 'Xylophone' },
+            { letter: 'Y', phonic: 'yuh', wordTail: 'o-yo', emoji: '🪀', exactWord: 'Yo-yo' },
+            { letter: 'Z', phonic: 'zzzzz', wordTail: 'ebra', emoji: '🦓', exactWord: 'Zebra' }
+        ];
+
+        let currentQuestion = null;
+        let score = 0;
+        let isCorrectState = false; 
+        const synth = window.speechSynthesis;
+
+        // Triggers transition from start screen layout to interactive play board
+        function startGame() {
+            const startScreen = document.getElementById('start-screen');
+            const gameInterface = document.getElementById('game-interface');
+            
+            startScreen.style.opacity = '0';
+            setTimeout(() => {
+                startScreen.style.display = 'none';
+                gameInterface.style.opacity = '1';
+                gameInterface.style.pointerEvents = 'auto';
+                nextRound(); // Seed the first alphabet round setup
+            }, 500);
+        }
+
+        function nextRound() {
+            isCorrectState = false;
+            
+            document.getElementById('next-btn').style.display = 'none';
+            document.getElementById('audio-btn').style.display = 'flex';
+            
+            currentQuestion = phonicsData[Math.floor(Math.random() * phonicsData.length)];
+            document.getElementById('current-emoji').textContent = currentQuestion.emoji;
+            
+            const slot = document.getElementById('letter-slot');
+            slot.textContent = "_";
+            slot.className = "first-letter hidden-letter";
+            
+            document.getElementById('word-tail').textContent = currentQuestion.wordTail;
+
+            let distractors = phonicsData
+                .filter(item => item.letter !== currentQuestion.letter)
+                .sort(() => 0.5 - Math.random())
+                .slice(0, 2);
+
+            let options = [currentQuestion, ...distractors].sort(() => 0.5 - Math.random());
+
+            const balloonElements = document.querySelectorAll('.balloon');
+            options.forEach((opt, index) => {
+                balloonElements[index].textContent = opt.letter;
+                balloonElements[index].dataset.letter = opt.letter;
+                balloonElements[index].classList.remove('wrong-shake', 'disabled');
+            });
+
+            setTimeout(() => { playTargetSound(); }, 200);
+        }
+
+        function playTargetSound() {
+            if (!currentQuestion) return;
+            synth.cancel();
+
+            let chant = `${currentQuestion.phonic}, , ${currentQuestion.phonic}`;
+            if (isCorrectState) {
+                chant = currentQuestion.exactWord;
+            }
+            
+            const utterance = new SpeechSynthesisUtterance(chant);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.60;
+            utterance.pitch = 1.15;
+            synth.speak(utterance);
+        }
+
+        function checkAnswer(selectedBalloon) {
+            if (isCorrectState) return;
+
+            const selectedLetter = selectedBalloon.dataset.letter;
+
+            if (selectedLetter === currentQuestion.letter) {
+                isCorrectState = true;
+                score++;
+                document.getElementById('score').textContent = score;
+                
+                const slot = document.getElementById('letter-slot');
+                slot.textContent = currentQuestion.letter;
+                slot.className = "first-letter revealed-letter";
+
+                createConfetti();
+                
+                const wordAnnouncement = new SpeechSynthesisUtterance(currentQuestion.exactWord);
+                wordAnnouncement.lang = 'en-US';
+                wordAnnouncement.rate = 0.65;
+                synth.speak(wordAnnouncement);
+
+                document.querySelectorAll('.balloon').forEach(b => b.classList.add('disabled'));
+
+                setTimeout(() => {
+                    document.getElementById('audio-btn').style.display = 'none';
+                    document.getElementById('next-btn').style.display = 'block';
+                }, 1000);
+
+            } else {
+                selectedBalloon.classList.add('wrong-shake');
+                
+                const tryAgain = new SpeechSynthesisUtterance("Try again!");
+                tryAgain.lang = 'en-US';
+                tryAgain.rate = 1.0;
+                synth.speak(tryAgain);
+
+                setTimeout(() => {
+                    selectedBalloon.classList.remove('wrong-shake');
+                }, 400);
+            }
+        }
+
+        function createConfetti() {
+            const colors = ['#f43f5e', '#38bdf8', '#eab308', '#4ade80', '#a855f7'];
+            for (let i = 0; i < 20; i++) {
+                const confetti = document.createElement('div');
+                confetti.classList.add('confetti');
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDelay = Math.random() * 0.3 + 's';
+                document.body.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 1500);
+            }
+        }
+    </script>
+</body>
+</html>
